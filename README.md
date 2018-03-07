@@ -12,37 +12,31 @@ The PID controller was implemented in C++ in accordance with the algorithm expla
 In order to tune the hyperparameters of the PID controller it is essential to find suitable values for the initialization. Otherwise the vehicle veers off the track quickly.
 As my mentor recommended, I used the [Ziegler–Nichols method](https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method) to find proper hyperparameters. I reduced the throttle to 0.2 as the initial value of 0.3 caused the vehicle to get stuck at the curb before reaching the target velocity.
 
-For the determination of the ultimate gain $K_u$ and the oscillation period $T_u$ I set the coefficients $K_d$ and $K_i$ to zero and just altered $K_p$ until I reached a stable oscillation. In the first step I set $K_p$ to 0.1 and ran the simulator while recording the cross-track error (CTE). Then I increased $K_p$ by 0.1 and started the simulator again. I repeated this procedure until $K_p=0.8$.
+For the determination of the ultimate gain Ku and the oscillation period Tu I set the coefficients Kd and Ki to zero and just altered Kp until I reached a stable oscillation. In the first step I set Kp to 0.1 and ran the simulator while recording the cross-track error (CTE). Then I increased Kp by 0.1 and started the simulator again. I repeated this procedure until Kp = 0.8.
 
-Afterwards I analysed the recorded data. The first 1000 steps I disregarded since the vehicle has not reached the nominal velocity yet. The most stable oscillation I got with $K_p=0.4$. Thus, the ultimate gain $K_u$ is 0.4. The measured oscillation period $T_u$ is 235. Inserting these values into the formulae of the [Ziegler–Nichols method](https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method) I got
+Afterwards I analysed the recorded data. The first 1000 steps I disregarded since the vehicle has not reached the nominal velocity yet. The most stable oscillation I got with Kp = 0.4 (see figure below).
 
-\[
-K_p=0.6 \cdot K_u=0.24
-\]
+![CTE for Kp = 0.4](CTE_Kp0.4.png)
 
-\[
-T_i=T_u/2=117.5
-\]
+Thus, the ultimate gain Ku is 0.4. The measured oscillation period Tu is 235. Inserting these values into the formulae of the [Ziegler–Nichols method](https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method) I got
 
-\[
-K_i=K_p/T_i=0.002
-\]
+Kp = 0.6 Ku = 0.24
 
-\[
-T_d=T_u/8=29.4
-\]
+Ti = Tu / 2 = 117.5
 
-\[
-K_d=K_p\cdot T_d=7.1
-\]
+Ki = Kp / Ti = 0.002
+
+Td = Tu / 8 = 29.4
+
+Kd = Kp * Td = 7.1
 
 With these hyperparameters the PID controller steers the vehicle safely around the track while the throttle is set to 0.2. For higher velocities the parameters are not optimal because the dynamics of the system changes. However, the values are a good starting point for  the hyperparameter tuning.
 
-I used another PID controller to control the speed based on the absolute value of th current steering value. In fact it is just a P controller since I only used the proportional part of the controller by setting the coefficients $K_d$ and $K_i$ to zero. After some experimentations I found the P coefficient $K_p=2.0$ and a maximum throttle value of 0.75 a good starting set for the following hyperparameter tuning.
+I used another PID controller to control the speed based on the absolute value of th current steering value. In fact it is just a P controller since I only used the proportional part of the controller by setting the coefficients Kd and Ki to zero. After some experimentations I found the P coefficient Kp = 2.0 and a maximum throttle value of 0.75 a good starting set for the following hyperparameter tuning.
 
 I initialized `Twiddle` with the coefficients mentioned above and run the simulator. After every 4500 steps (which equals roughly on lap) the twiddle algorithm updates one coefficient according to the corresponding increment. As a measure for the performance of the hyperparameters I used the highest absolute value of the CTE within this interval. This turned out to work better than the mean squarred error. In the table below the results of the parameter tuning is shown.
 
-| lap | $K_{p,steer}$ | $K_{p,steer}$ | $K_{d,steer}$ | $K_{p,throttle}$ | max error |
+| lap | Kp,steer | Kp,steer | Kd,steer | Kp,throttle | max error |
 |:-:|--:|--:|--:|--:|--:|
 | 1 | 0.24 | 0.002 | 7.1 | 2 | 2.8701 |
 | 2 | 0.25 | 0.002 | 7.1 | 2 | 2.8701 |
@@ -70,12 +64,11 @@ I initialized `Twiddle` with the coefficients mentioned above and run the simula
 | 24 | 0.23 | 0.00199 | 6.05 | 1.801 | 2.7566 |
 
 Finally, I chose the hyperparameters where the highest absolute value of the CTE in one lap is minimal, that is:
-\[
-K_{p,steer}=0.23, \quad K_{i,steer}=0.002, \quad K_{d,steer}=6.1
-\]
-\[
-K_{p,throttle}=1.9, \quad K_{i,throttle}=0.0, \quad K_{d,throttle}=0.0
-\]
+
+Kp,steer = 0.23,  Ki,steer = 0.002,  Kd,steer = 6.1
+
+Kp,throttle = 1.9,  Ki,throttle = 0.0,  Kd,throttle = 0.0
+
 With these coefficients the vehicle reached a maximum speed as high as 62.
 
 ### Effect of the P, I, D components in the implementation
